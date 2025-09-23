@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>India Tax & GST AI Chatbot</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><i class="fas fa-balance-scale"></i> India Tax & GST AI Chatbot</h1>
+      <p>Updated with Income Tax & GST laws (As per Finance Ministry, 2025)</p>
+    </header>
+
+    <section class="chat-section">
+      <div id="chat" class="chat-box"></div>
+
+      <div class="input-area">
+        <input
+          id="userInput"
+          type="text"
+          placeholder="Ask about GST, Income Tax, Budget Planning, or Ministry Updates"
+          autocomplete="off"
+          onkeypress="handleKeyPress(event)"
+        />
+        <button onclick="sendMessage()" aria-label="Send message">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </section>
+
+    <section class="info-section">
+      <h2>📚 Important Links</h2>
+      <ul>
+        <li><a href="https://incometaxindia.gov.in/pages/tax-laws-rules.aspx" target="_blank">Income Tax Laws - Income Tax Dept.</a></li>
+        <li><a href="https://financialservices.gov.in/beta/en" target="_blank">Finance Ministry Official Portal</a></li>
+        <li><a href="https://www.gst.gov.in" target="_blank">GST India Official Website</a></li>
+      </ul>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
