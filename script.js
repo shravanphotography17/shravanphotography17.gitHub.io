@@ -303,3 +303,156 @@ userInput.addEventListener("keypress", e => {
 window.onload = () => {
   addMessage("Hello! Welcome to the India Tax & GST Chatbot. Ask me anything about GST, Income Tax, budget planning, or finance updates.");
 };
+
+
+const chat = document.getElementById("chat");
+const userInput = document.getElementById("userInput");
+
+// GST slabs data for 2025 reform
+const gstSlabs = {
+  zero: ["insurance", "life policy", "health insurance", "medicine", "education", "milk", "bread", "paneer", "roti", "chapati"],
+  five: ["agriculture", "fertilizer", "processed food", "hotel", "restaurant", "cosmetics", "salon", "shampoo", "toothpaste", "bicycle", "kitchenware", "handicraft"],
+  eighteen: ["electronics", "automobile", "tv", "furniture", "motors", "ac", "small car", "motorbike", "software"],
+  forty: ["tobacco", "cigarette", "pan masala", "aerated drinks", "alcohol", "luxury car"]
+};
+// Income Tax Slabs FY 2025-26 (AY 2026-27) - new regime
+const incomeTaxSlabs = [
+  { upto: 300000, rate: 0 },
+  { upto: 700000, rate: 5 },
+  { upto: 1000000, rate: 10 },
+  { upto: 1200000, rate: 15 },
+  { upto: 1500000, rate: 20 },
+  { upto: Infinity, rate: 30 }
+];
+
+function addMessage(text, sender = "bot") {
+  const div = document.createElement("div");
+  div.className = "message " + sender;
+  div.innerHTML = `<span class="icon">${sender === "bot" ? "🤖" : "👤"}</span><div>${text}</div>`;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function guessGSTRate(item) {
+  item = item.toLowerCase();
+  for (const tier in gstSlabs) {
+    if (gstSlabs[tier].some(term => item.includes(term))) {
+      return tier === "zero" ? 0 : tier === "five" ? 5 : tier === "eighteen" ? 18 : 40;
+    }
+  }
+  return 18;
+}
+
+function calculateGST(amount, rate) {
+  const gstAmount = ((amount * rate) / 100).toFixed(2);
+  return { gstAmount, total: (amount + parseFloat(gstAmount)).toFixed(2) };
+}
+
+function calculateIncomeTax(income) {
+  let tax = 0;
+  let prev = 0;
+  for (const slab of incomeTaxSlabs) {
+    if (income > slab.upto) {
+      tax += ((slab.upto - prev) * slab.rate) / 100;
+      prev = slab.upto;
+    } else {
+      tax += ((income - prev) * slab.rate) / 100;
+      break;
+    }
+  }
+  return tax.toFixed(2);
+}
+
+function handleUserInput(input) {
+  input = input.toLowerCase();
+
+  if (/gst/.test(input) && /d/.test(input)) {
+    const amountMatch = input.match(/d+(,d+)?(.d+)?/);
+    if (!amountMatch) {
+      addMessage("Please specify the amount for GST calculation.");
+      return;
+    }
+    const amount = parseFloat(amountMatch[0].replace(/,/g, ""));
+    const item = input.replace(/gst|calculate|on|for|d+|,|.|₹|amount/gi, "").trim();
+    const rate = guessGSTRate(item);
+    const { gstAmount, total } = calculateGST(amount, rate);
+    addMessage(`
+      <b>GST Calculation</b><br>
+      Item: ${item || "General"}<br>
+      Amount: ₹${amount.toLocaleString()}<br>
+      Rate: ${rate}%<br>
+      GST: ₹${parseFloat(gstAmount).toLocaleString()}<br>
+      Total: ₹${parseFloat(total).toLocaleString()}
+    `);
+    return;
+  }
+
+  if (/income tax/.test(input) && /d/.test(input)) {
+    const incomeMatch = input.match(/d+(,d+)?(.d+)?/);
+    if (!incomeMatch) {
+      addMessage("Please specify your income for tax estimation.");
+      return;
+    }
+    const income = parseFloat(incomeMatch[0].replace(/,/g, ""));
+    const tax = calculateIncomeTax(income);
+    addMessage(`
+      <b>Income Tax Estimation</b><br>
+      Income: ₹${income.toLocaleString()}<br>
+      Estimated Tax: ₹${parseFloat(tax).toLocaleString()}<br>
+      (Calculated based on AY 2025-26 new tax slabs)
+    `);
+    return;
+  }
+
+  if (input.includes("budget")) {
+    addMessage(`
+      <b>Budget Planner</b><br>
+      Please provide your monthly or annual income and key expenses.<br>
+      Example:<br>
+      "Budget for monthly income 50000"<br>
+      "Help me plan budget with ₹100000 annual income"
+    `);
+    return;
+  }
+
+  if (input.includes("finance") || input.includes("news") || input.includes("update")) {
+    addMessage(`
+      <b>Finance Ministry Updates (2025)</b><br>
+      - GST slab simplification to 0%, 5%, 18%, 40%.<br>
+      - Income Tax slabs updated for FY 2025-26.<br>
+      - Operationalization of GST Appellate Tribunal by December 2025.<br>
+      For more official updates visit:<br>
+      <a href="https://incometaxindia.gov.in/pages/tax-laws-rules.aspx" target="_blank">Income Tax Dept.</a><br>
+      <a href="https://financialservices.gov.in/beta/en" target="_blank">Ministry of Finance</a>
+    `);
+    return;
+  }
+
+  addMessage(`
+    Hi! I can help you with:<br>
+    - GST calculation<br>
+    - Income tax estimation<br>
+    - Budget planning ideas<br>
+    - Latest finance & tax updates<br>
+    Please ask your question!
+  `);
+}
+
+function sendMessage() {
+  const text = userInput.value.trim();
+  if (!text) return;
+  addMessage(text, "user");
+  userInput.value = "";
+  setTimeout(() => handleUserInput(text), 600);
+}
+
+userInput.addEventListener("keypress", e => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+window.onload = () => {
+  addMessage("Hello! Welcome to the India Tax & GST Chatbot. Ask me anything about GST, Income Tax, budget planning, or finance updates.");
+};
