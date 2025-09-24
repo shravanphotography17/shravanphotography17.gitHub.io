@@ -1,47 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>India Tax & GST AI Chatbot</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>GST & Income Tax Chatbot (India)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f3f3;
+      padding: 0;
+      margin: 0;
+    }
+    #container {
+      max-width: 500px;
+      margin: 50px auto;
+      background: #fff;
+      border-radius: 6px;
+      box-shadow: 0 2px 16px #aaa;
+      padding: 24px 22px 22px 22px;
+    }
+    #chatbox {
+      width: 100%;
+      height: 350px;
+      border: 1px solid #cccccc;
+      background: #fafafa;
+      border-radius: 5px;
+      padding: 10px;
+      overflow-y: scroll;
+      margin-bottom: 16px;
+    }
+    #input {
+      width: calc(100% - 75px);
+      padding: 7px 9px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 15px;
+    }
+    #submit {
+      width: 56px;
+      padding: 7px 0px;
+      font-size: 15px;
+      background: #297ef6;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 6px;
+    }
+    h2 {
+      text-align: center;
+      color: #297ef6;
+      margin-bottom: 12px;
+    }
+    .user {
+      color: #22657b;
+      margin: 2px 0;
+    }
+    .bot {
+      color: #094d12;
+      margin: 2px 0 7px 0;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1><i class="fas fa-balance-scale"></i> India Tax & GST AI Chatbot</h1>
-      <p>Updated with Income Tax & GST laws (As per Finance Ministry, 2025)</p>
-    </header>
-
-    <section class="chat-section">
-      <div id="chat" class="chat-box"></div>
-
-      <div class="input-area">
-        <input
-          id="userInput"
-          type="text"
-          placeholder="Ask about GST, Income Tax, Budget Planning, or Ministry Updates"
-          autocomplete="off"
-          onkeypress="handleKeyPress(event)"
-        />
-        <button onclick="sendMessage()" aria-label="Send message">
-          <i class="fas fa-paper-plane"></i>
-        </button>
-      </div>
-    </section>
-
-    <section class="info-section">
-      <h2>📚 Important Links</h2>
-      <ul>
-        <li><a href="https://incometaxindia.gov.in/pages/tax-laws-rules.aspx" target="_blank">Income Tax Laws - Income Tax Dept.</a></li>
-        <li><a href="https://financialservices.gov.in/beta/en" target="_blank">Finance Ministry Official Portal</a></li>
-        <li><a href="https://www.gst.gov.in" target="_blank">GST India Official Website</a></li>
-      </ul>
-    </section>
+  <div id="container">
+    <h2>GST & Income Tax Chatbot</h2>
+    <div id="chatbox"></div>
+    <input type="text" id="input" placeholder="Type 'income tax 900000', 'GST 5000 at 18%', 'news'">
+    <button id="submit">Send</button>
   </div>
+  <script>
+    // New Regime slabs (AY 2026-27, FY 2025-26)
+    const taxBrackets = [
+      { min: 0, max: 400000, rate: 0 },
+      { min: 400001, max: 800000, rate: 0.05 },
+      { min: 800001, max: 1200000, rate: 0.10 },
+      { min: 1200001, max: 1600000, rate: 0.15 },
+      { min: 1600001, max: 2000000, rate: 0.20 },
+      { min: 2000001, max: 2400000, rate: 0.25 },
+      { min: 2400001, max: Infinity, rate: 0.30 }
+    ];
+    // Common Indian GST rates
+    const gstRates = { "5": 0.05, "12": 0.12, "18": 0.18, "28": 0.28 };
 
-  <script src="script.js"></script>
+    function calculateIncomeTax(income) {
+      let tax = 0;
+      for (const bracket of taxBrackets) {
+        if (income > bracket.min) {
+          let taxable = Math.min(income, bracket.max) - bracket.min;
+          tax += taxable * bracket.rate;
+        }
+      }
+      let cess = tax * 0.04;
+      tax += cess;
+      return tax;
+    }
+
+    function calculateGST(amount, gstRate) {
+      return amount * gstRates[gstRate];
+    }
+
+    function botReply(msg) {
+      let response = "";
+      msg = msg.toLowerCase();
+      // Income tax calculation
+      if (msg.includes("income tax")) {
+        let matches = msg.match(/d+/g);
+        if (matches) {
+          let income = parseInt(matches[0]);
+          if (!isNaN(income)) {
+            let tax = calculateIncomeTax(income);
+            response = `For income ₹${income}, your tax (new regime AY 2026-27) is <b>₹${tax.toFixed(2)}</b> (including 4% health & education cess).`;
+          } else {
+            response = "Please provide a valid number. Example: 'income tax 1200000'";
+          }
+        } else {
+          response = "Usage: 'income tax [amount]'. Example: 'income tax 900000'";
+        }
+      }
+      // GST calculation
+      else if (msg.includes("gst")) {
+        let amtMatch = msg.match(/d+/g);
+        let amt = amtMatch ? parseInt(amtMatch[0]) : null;
+        let rate = Object.keys(gstRates).find(r => msg.includes(r + "%"));
+        if (amt && rate) {
+          let gst = calculateGST(amt, rate);
+          response = `GST on ₹${amt} at ${rate}% is <b>₹${gst.toFixed(2)}</b>.`;
+        } else {
+          response = "Usage: 'GST [amount] at [rate]%'. Example: 'GST 8000 at 12%'";
+        }
+      }
+      // News or update
+      else if (msg.includes("news")) {
+        response = `Latest Tax & GST News: <br>
+        <a href="https://www.incometax.gov.in/" target="_blank">incometax.gov.in</a> <br>
+        <a href="https://www.gst.gov.in/" target="_blank">gst.gov.in</a>`;
+      }
+      else {
+        response = "Try: <br>'income tax 1000000'<br>'GST 5000 at 18%'<br>'news'";
+      }
+      document.getElementById("chatbox").innerHTML += `<div class='bot'>Bot: ${response}</div>`;
+      document.getElementById("chatbox").scrollTop = document.getElementById("chatbox").scrollHeight;
+    }
+
+    document.getElementById("submit").onclick = function() {
+      let userMsg = document.getElementById("input").value.trim();
+      if (userMsg.length === 0) return;
+      document.getElementById("chatbox").innerHTML += `<div class='user'>User: ${userMsg}</div>`;
+      botReply(userMsg);
+      document.getElementById("input").value = "";
+      document.getElementById("input").focus();
+    };
+    // Enable "enter" to send
+    document.getElementById("input").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") {
+        document.getElementById("submit").click();
+      }
+    });
+  </script>
 </body>
 </html>
 
@@ -49,59 +164,151 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>India Tax & GST Chatbot</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>GST & Income Tax Chatbot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f3f3;
+      margin: 0; padding: 0;
+    }
+    #container {
+      max-width: 480px;
+      margin: 42px auto;
+      background: #fff;
+      border-radius: 7px;
+      box-shadow: 0 2px 16px #ccc;
+      padding: 28px 22px 22px 22px;
+    }
+    #chatbox {
+      width: 100%;
+      height: 310px;
+      border: 1px solid #cccccc;
+      background: #fafafa;
+      border-radius: 5px;
+      padding: 10px;
+      overflow-y: scroll;
+      margin-bottom: 15px;
+    }
+    #input {
+      width: calc(100% - 78px);
+      padding: 7px 9px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 15px;
+    }
+    #submit {
+      width: 60px;
+      padding: 7px 0px;
+      font-size: 15px;
+      background: #2c82f7;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 8px;
+    }
+    h2 {
+      text-align: center;
+      color: #2654a6;
+      margin-bottom: 14px;
+    }
+    .user { color: #003049; margin:3px 0;}
+    .bot  { color: #095806; margin:2px 0 13px 0;}
+  </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1><i class="fas fa-robot"></i> India Tax & GST Chatbot</h1>
-      <p>Ask me about GST, Income Tax, Budget planning and Ministry Finance updates.</p>
-    </header>
-
-    <section class="chat-section">
-      <div id="chat" class="chat-box"></div>
-      <div class="input-area">
-        <input id="userInput" type="text" placeholder="Type your question here..." />
-        <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
-      </div>
-    </section>
+  <div id="container">
+    <h2>GST & Income Tax Chatbot</h2>
+    <div id="chatbox"></div>
+    <input type="text" id="input" placeholder="Eg: income tax 1500000, GST 8500 at 18%, news">
+    <button id="submit">Send</button>
   </div>
+  <script>
+    // Latest (AY 2026-27) new regime slabs
+    const taxBrackets = [
+      { min: 0, max: 400000, rate: 0 },
+      { min: 400001, max: 800000, rate: 0.05 },
+      { min: 800001, max: 1200000, rate: 0.10 },
+      { min: 1200001, max: 1600000, rate: 0.15 },
+      { min: 1600001, max: 2000000, rate: 0.20 },
+      { min: 2000001, max: 2400000, rate: 0.25 },
+      { min: 2400001, max: Infinity, rate: 0.30 }
+    ];
+    // Common Indian GST rates
+    const gstRates = { "5": 0.05, "12": 0.12, "18": 0.18, "28": 0.28 };
 
-  <script src="script.js"></script>
-</body>
-</html>
-
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>India Tax & GST Chatbot</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <div class="container">
-    <header>
-      <h1><i class="fas fa-robot"></i> India Tax & GST Chatbot</h1>
-      <p>Ask me about GST, Income Tax, Budget planning and Ministry Finance updates.</p>
-    </header>
-
-    <section class="chat-section">
-      <div id="chat" class="chat-box"></div>
-      <div class="input-area">
-        <input id="userInput" type="text" placeholder="Type your question here..." />
-        <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
-      </div>
-    </section>
-  </div>
-
-  <script src="script.js"></script>
+    function calculateIncomeTax(income) {
+      let tax = 0;
+      for (const bracket of taxBrackets) {
+        if (income > bracket.min) {
+          let taxable = Math.min(income, bracket.max) - bracket.min;
+          tax += taxable * bracket.rate;
+        }
+      }
+      let cess = tax * 0.04;
+      tax += cess;
+      return tax;
+    }
+    function calculateGST(amount, gstRate) {
+      return amount * gstRates[gstRate];
+    }
+    function botReply(msg) {
+      let response = "";
+      msg = msg.toLowerCase();
+      // Income tax calculation
+      if (msg.includes("income tax")) {
+        let matches = msg.match(/d+/g);
+        if (matches) {
+          let income = parseInt(matches[0]);
+          if (!isNaN(income)) {
+            let tax = calculateIncomeTax(income);
+            response = `For income ₹${income}, your tax (new regime AY 2026-27) is <b>₹${tax.toFixed(2)}</b> (inc. 4% health & education cess).`;
+          } else {
+            response = "Please provide amount properly. E.g.: 'income tax 1200000'";
+          }
+        } else {
+          response = "Usage: 'income tax [amount]'. Example: 'income tax 900000'";
+        }
+      }
+      // GST calculation
+      else if (msg.includes("gst")) {
+        let amtMatch = msg.match(/d+/g);
+        let amt = amtMatch ? parseInt(amtMatch[0]) : null;
+        let rate = Object.keys(gstRates).find(r => msg.includes(r + "%"));
+        if (amt && rate) {
+          let gst = calculateGST(amt, rate);
+          response = `GST on ₹${amt} at ${rate}% is <b>₹${gst.toFixed(2)}</b>.`;
+        } else {
+          response = "Correct usage: 'GST [amount] at [rate]%'. E.g.: 'GST 8000 at 18%'";
+        }
+      }
+      // News or update
+      else if (msg.includes("news")) {
+        response = `Latest Tax, GST & Budget News: <br>
+        <a href="https://www.incometax.gov.in/" target="_blank">Income Tax Dept</a> <br>
+        <a href="https://www.gst.gov.in/" target="_blank">GST Portal</a>`;
+      }
+      else {
+        response = "Type:<br>'income tax 1000000'<br>'GST 5000 at 18%'<br>'news'";
+      }
+      document.getElementById("chatbox").innerHTML += `<div class="bot">Bot: ${response}</div>`;
+      document.getElementById("chatbox").scrollTop = document.getElementById("chatbox").scrollHeight;
+    }
+    document.getElementById("submit").onclick = function() {
+      let userMsg = document.getElementById("input").value.trim();
+      if (userMsg.length === 0) return;
+      document.getElementById("chatbox").innerHTML += `<div class="user">User: ${userMsg}</div>`;
+      botReply(userMsg);
+      document.getElementById("input").value = "";
+      document.getElementById("input").focus();
+    };
+    document.getElementById("input").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") {
+        document.getElementById("submit").click();
+      }
+    });
+  </script>
 </body>
 </html>
 
